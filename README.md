@@ -1,4 +1,6 @@
 # Blog
+## tutorial:
+https://remix.run/docs/en/v1/tutorials/blog
 ## some resources I am curious to try:
 ### main ideas:
 https://www.joshwcomeau.com/blog/how-i-built-my-blog/
