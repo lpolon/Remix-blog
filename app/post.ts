@@ -1,8 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
-import fm from 'front-matter';
 import invariant from 'tiny-invariant';
-
+import { bundleMDX } from '~/utils/bundleMDX.server';
 /*
 These is my "controllers"
 */
@@ -10,6 +9,7 @@ These is my "controllers"
 export type Post = {
   slug: string;
   title: string;
+  body: string;
 };
 
 type PostMarkdownAttr = Pick<Post, 'title'>;
@@ -20,10 +20,13 @@ const isValidPostAttr = (attr: unknown): attr is PostMarkdownAttr => {
 
 export const getPost = async (slug: string): Promise<Post> => {
   const postsPath = path.join(__dirname, '..', 'posts');
-  const filepath = path.join(postsPath, `${slug}.md`);
+  const filepath = path.join(postsPath, `${slug}.mdx`);
   const file = await fs.readFile(filepath);
 
-  const { attributes } = fm(file.toString());
+  // mdx bundler entraria aqui também, acredito.
+  const { frontmatter: attributes, code } = await bundleMDX({
+    source: file.toString(),
+  });
 
   invariant(
     isValidPostAttr(attributes),
@@ -33,10 +36,11 @@ export const getPost = async (slug: string): Promise<Post> => {
   return {
     slug: slug,
     title: attributes.title,
+    body: code,
   };
 };
 
-export const getPosts = async (): Promise<Post[]> => {
+export const getPosts = async (): Promise<Omit<Post, 'body'>[]> => {
   // docs: relative to the server output not the source!
   const postsPath = path.join(__dirname, '..', 'posts');
   const dir = await fs.readdir(postsPath);
@@ -50,13 +54,16 @@ export const getPosts = async (): Promise<Post[]> => {
 
   const PostsProm = dir.map(async filename => {
     const file = await fs.readFile(path.join(postsPath, filename));
-    const { attributes } = fm(file.toString());
+    const { frontmatter: attributes } = await bundleMDX({
+      source: file.toString(),
+    });
 
     // pretty neat
     invariant(isValidPostAttr(attributes), `${filename} has bad meta data!`);
 
+    // Lista o nome dos arquivos. São os posts.
     return {
-      slug: filename.replace(/\.md$/, ''),
+      slug: filename.replace(/\.mdx$/, ''),
       title: attributes.title,
     };
   });

@@ -3,7 +3,7 @@ import type { Post } from '~/post';
 import { useLoaderData } from 'remix';
 import { getPost } from '~/post';
 import invariant from 'tiny-invariant';
-
+import { useMdxComponent } from '~/utils/mdx';
 // dynamic route params
 export const loader: LoaderFunction = async ({ params }) => {
   /*
@@ -16,10 +16,12 @@ export const loader: LoaderFunction = async ({ params }) => {
 
 const PostSlug: React.FC = () => {
   const post = useLoaderData<Post>();
+  const Component = useMdxComponent(post.body);
   // TODO: keep following the tutorial. markdown parser. Consider trying MDX already.
   return (
     <div>
       <h1>{post.title}</h1>
+      <Component />
     </div>
   );
 };
