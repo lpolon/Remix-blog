@@ -3,4 +3,6 @@
 
 import { bundleMDX } from 'mdx-bundler';
 
+// TODO: minimal implementation of KCD compile-mdx to fix import of component inside MDX bundler;
+
 export { bundleMDX };
